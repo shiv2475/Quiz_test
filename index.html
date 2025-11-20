@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frugal Testing | Skill Assessment</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Poppins', 'sans-serif'] },
+                    colors: {
+                        brand: { 500: '#6366f1', 600: '#4f46e5' }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'pulse-red': 'pulseRed 1s infinite'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(10px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } },
+                        pulseRed: { '0%, 100%': { color: '#ef4444' }, '50%': { color: '#b91c1c' } }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .option-card {
+            transition: all 0.2s ease;
+            border: 2px solid transparent;
+        }
+        .option-card:hover {
+            transform: translateY(-2px);
+            border-color: #a5b4fc;
+            background-color: #f0f9ff;
+        }
+        .option-card.selected {
+            background: linear-gradient(to right, #e0e7ff, #ffffff);
+            border-color: #4f46e5;
+            box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.1);
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f1f1; }
+        ::-webkit-scrollbar-thumb { background: #c7c7c7; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+<div id="app" class="w-full max-w-4xl glass-panel rounded-3xl shadow-2xl overflow-hidden relative min-h-[600px] flex flex-col">
+
+    <div class="bg-white/50 p-6 border-b border-gray-100 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center text-white">
+                <i class="fa-solid fa-code"></i>
+            </div>
+            <h1 class="text-xl font-bold text-gray-800 tracking-tight">Frugal<span class="text-brand-600">Testing</span> Quiz</h1>
+        </div>
+        <div id="header-timer" class="hidden flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full shadow-inner">
+            <i class="fa-regular fa-clock text-gray-500"></i>
+            <span id="timer-display" class="font-mono font-bold text-brand-600 text-lg">30</span>s
+        </div>
+    </div>
+
+    <div id="config-screen" class="flex-1 p-8 md:p-12 flex flex-col justify-center animate-fade-in">
+        <div class="text-center mb-10">
+            <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Ready to test your skills?</h2>
+            <p class="text-gray-500">Customize your session below to get started.</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-6 max-w-2xl mx-auto w-full">
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-600 uppercase tracking-wider">Category</label>
+                <div class="relative">
+                    <select id="category" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:ring-2 focus:ring-brand-500 focus:outline-none cursor-pointer">
+                        <option value="All">All Categories</option>
+                        <option value="Programming">Programming Fundamentals</option>
+                        <option value="Testing">Software Testing</option>
+                    </select>
+                    <i class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label class="text-sm font-semibold text-gray-600 uppercase tracking-wider">Difficulty</label>
+                <div class="relative">
+                    <select id="difficulty" class="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl appearance-none focus:ring-2 focus:ring-brand-500 focus:outline-none cursor-pointer">
+                        <option value="easy">Easy</option>
+                        <option value="medium">Medium</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                    <i class="fa-solid fa-layer-group absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-10 text-center">
+            <button id="start-quiz-btn" class="group relative inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white transition-all duration-200 bg-brand-600 rounded-xl hover:bg-brand-500 hover:shadow-lg hover:shadow-brand-500/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-600">
+                <span>Start Assessment</span>
+                <i class="fa-solid fa-arrow-right ml-2 transition-transform group-hover:translate-x-1"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="quiz-screen" class="hidden flex-1 flex flex-col">
+        <div class="w-full bg-gray-200 h-2">
+            <div id="progress-bar" class="bg-brand-600 h-2 transition-all duration-500" style="width: 0%"></div>
+        </div>
+
+        <div class="p-8 md:p-12 flex-1 flex flex-col max-w-4xl mx-auto w-full animate-fade-in">
+            <div class="mb-6 flex justify-between items-end">
+                <span class="text-sm font-semibold text-brand-600 bg-brand-50 px-3 py-1 rounded-full">
+                    Question <span id="current-q-index">1</span> / <span id="total-q-count">5</span>
+                </span>
+            </div>
+
+            <div id="question-container" class="mb-8 flex-1">
+                <h2 id="question-text" class="text-2xl md:text-3xl font-bold text-gray-800 mb-8 leading-tight">Loading...</h2>
+                
+                <div id="options-container" class="grid gap-4">
+                    </div>
+            </div>
+
+            <div class="flex justify-between items-center pt-6 border-t border-gray-100">
+                <button id="prev-btn" class="px-6 py-3 text-gray-500 font-medium hover:text-gray-800 disabled:opacity-30 transition-colors" disabled>
+                    <i class="fa-solid fa-arrow-left mr-2"></i> Previous
+                </button>
+                
+                <button id="next-btn" class="px-8 py-3 bg-gray-900 text-white font-semibold rounded-xl shadow-lg hover:bg-gray-800 transition-transform active:scale-95">
+                    Next Question
+                </button>
+                
+                <button id="submit-quiz-btn" class="hidden px-8 py-3 bg-green-600 text-white font-semibold rounded-xl shadow-lg hover:bg-green-500 transition-transform active:scale-95">
+                    Submit Quiz <i class="fa-solid fa-check ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="result-screen" class="hidden flex-1 p-8 md:p-12 flex flex-col items-center animate-fade-in overflow-y-auto">
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-20 h-20 bg-green-100 text-green-600 rounded-full mb-4 text-4xl shadow-sm">
+                <i class="fa-solid fa-trophy"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800">Quiz Completed!</h2>
+            <p class="text-gray-500">Here is your performance breakdown.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 w-full max-w-3xl mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
+                <p class="text-gray-400 text-sm font-semibold uppercase">Total Score</p>
+                <p id="total-score-display" class="text-4xl font-bold text-gray-800 mt-2">--</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
+                <p class="text-gray-400 text-sm font-semibold uppercase">Accuracy</p>
+                <p id="accuracy-display" class="text-4xl font-bold text-brand-600 mt-2">--%</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 text-center">
+                <p class="text-gray-400 text-sm font-semibold uppercase">Avg Time</p>
+                <p id="avg-time-display" class="text-4xl font-bold text-blue-500 mt-2">--s</p>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 w-full max-w-4xl mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-700 mb-4 text-center"><i class="fa-solid fa-chart-pie mr-2 text-brand-500"></i>Answer Distribution</h3>
+                <canvas id="scoreChart"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h3 class="font-bold text-gray-700 mb-4 text-center"><i class="fa-solid fa-stopwatch mr-2 text-blue-500"></i>Time per Question</h3>
+                <canvas id="timeChart"></canvas>
+            </div>
+        </div>
+
+        <button onclick="location.reload()" class="w-full md:w-auto px-10 py-4 bg-gray-900 text-white font-bold rounded-xl shadow-lg hover:bg-gray-800 transition-all">
+            <i class="fa-solid fa-rotate-right mr-2"></i> Take Another Quiz
+        </button>
+    </div>
+
+</div>
+
+<script>
+    // --- Data Store ---
+    const rawQuizData = [
+        { category: "Programming", difficulty: "easy", question: "Which command is used to stage changes in Git?", options: ["git commit", "git push", "git add", "git status"], answer: "git add" },
+        { category: "Testing", difficulty: "easy", question: "What is the main purpose of Unit Testing?", options: ["Testing end-to-end flow", "Testing individual components", "Testing DB performance", "Testing UI"], answer: "Testing individual components" },
+        { category: "Programming", difficulty: "medium", question: "What does PHP stand for?", options: ["Personal Home Page", "Preprocessed Hypertext Pages", "Hypertext Preprocessor", "Programming Home Page"], answer: "Hypertext Preprocessor" },
+        { category: "Testing", difficulty: "medium", question: "What does 'API' stand for?", options: ["Application Program Interface", "Automated Performance Integration", "Action Protocol Index", "Application Public Interface"], answer: "Application Program Interface" },
+        { category: "Programming", difficulty: "hard", question: "In JS, what is the 'Temporal Dead Zone'?", options: ["Memory leak area", "Period where let/const cannot be accessed", "Unused loop block", "Time before DOM loads"], answer: "Period where let/const cannot be accessed" },
+        { category: "Testing", difficulty: "hard", question: "Which testing focuses on stability and responsiveness?", options: ["Functional Testing", "Security Testing", "Performance Testing", "Regression Testing"], answer: "Performance Testing" },
+        { category: "Programming", difficulty: "easy", question: "Which language is primarily used for web styling?", options: ["HTML", "JavaScript", "Python", "CSS"], answer: "CSS" },
+        { category: "Testing", difficulty: "medium", question: "Difference between bug and defect?", options: ["No difference", "Defect found by tester, bug by user", "Defect is internal, bug is external", "Defect is imperfection, bug is error"], answer: "No difference" }
+    ];
+
+    let quiz = [];
+    let currentQuestionIndex = 0;
+    let userAnswers = {}; 
+    let timerInterval;
+    const TIME_LIMIT = 30; 
+
+    // --- DOM Elements ---
+    const configScreen = document.getElementById('config-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const headerTimer = document.getElementById('header-timer');
+    
+    const timerDisplay = document.getElementById('timer-display');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const currentQIndexDisplay = document.getElementById('current-q-index');
+    const totalQCountDisplay = document.getElementById('total-q-count');
+    const progressBar = document.getElementById('progress-bar');
+    
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const submitQuizBtn = document.getElementById('submit-quiz-btn');
+
+    // --- Core Logic ---
+    function filterQuiz() {
+        const selectedCategory = document.getElementById('category').value;
+        const selectedDifficulty = document.getElementById('difficulty').value;
+        
+        let filtered = rawQuizData.filter(q => 
+            (selectedCategory === 'All' || q.category === selectedCategory) &&
+            q.difficulty === selectedDifficulty
+        );
+
+        // Fallback if no questions found
+        if (filtered.length === 0) {
+            alert("No specific questions found. Loading mixed set.");
+            filtered = rawQuizData;
+        }
+        
+        // Randomize and slice to 5
+        quiz = filtered.sort(() => 0.5 - Math.random()).slice(0, 5);
+        
+        totalQCountDisplay.textContent = quiz.length;
+        currentQuestionIndex = 0;
+        userAnswers = {};
+    }
+
+    function startTimer() {
+        clearInterval(timerInterval);
+        let timeRemaining = TIME_LIMIT;
+        timerDisplay.textContent = timeRemaining;
+        
+        // Reset styling
+        timerDisplay.parentElement.classList.remove('animate-pulse-red', 'bg-red-50');
+        timerDisplay.classList.remove('text-red-600');
+
+        if (!userAnswers[currentQuestionIndex] || !userAnswers[currentQuestionIndex].startTime) {
+             userAnswers[currentQuestionIndex] = userAnswers[currentQuestionIndex] || {};
+             userAnswers[currentQuestionIndex].startTime = performance.now();
+        }
+
+        timerInterval = setInterval(() => {
+            timeRemaining--;
+            timerDisplay.textContent = timeRemaining;
+
+            // Visual Alert for Low Time (< 10s)
+            if(timeRemaining <= 10) {
+                timerDisplay.parentElement.classList.add('animate-pulse-red', 'bg-red-50');
+                timerDisplay.classList.add('text-red-600');
+            }
+
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                recordAnswer(null);
+                
+                // Auto advance
+                if (currentQuestionIndex < quiz.length - 1) {
+                    nextQuestion();
+                } else {
+                    submitQuiz();
+                }
+            }
+        }, 1000);
+    }
+
+    function renderQuestion() {
+        if (quiz.length === 0) return;
+
+        const q = quiz[currentQuestionIndex];
+        currentQIndexDisplay.textContent = currentQuestionIndex + 1;
+        
+        // Update Progress Bar
+        const progress = ((currentQuestionIndex) / quiz.length) * 100;
+        progressBar.style.width = `${progress}%`;
+
+        // Animation reset
+        document.getElementById('question-container').classList.remove('animate-fade-in');
+        void document.getElementById('question-container').offsetWidth; // trigger reflow
+        document.getElementById('question-container').classList.add('animate-fade-in');
+
+        questionText.textContent = q.question;
+        optionsContainer.innerHTML = '';
+        
+        q.options.forEach((option, index) => {
+            const isSelected = userAnswers[currentQuestionIndex] && userAnswers[currentQuestionIndex].selectedOption === option;
+            
+            const btn = document.createElement('div');
+            btn.className = `option-card p-5 rounded-xl bg-gray-50 cursor-pointer flex items-center gap-4 ${isSelected ? 'selected' : ''}`;
+            btn.innerHTML = `
+                <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold ${isSelected ? 'border-brand-600 bg-brand-600 text-white' : 'border-gray-300 text-gray-500'}">
+                    ${String.fromCharCode(65 + index)}
+                </div>
+                <span class="text-gray-700 font-medium text-lg">${option}</span>
+            `;
+            
+            btn.onclick = () => selectOption(option);
+            optionsContainer.appendChild(btn);
+        });
+
+        startTimer();
+        updateNavigationButtons();
+    }
+
+    function selectOption(option) {
+        // Update UI
+        const allOptions = optionsContainer.children;
+        Array.from(allOptions).forEach(div => {
+            div.classList.remove('selected');
+            const circle = div.querySelector('div');
+            circle.className = 'w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold border-gray-300 text-gray-500';
+        });
+
+        // Highlight specific clicked option
+        const selectedDiv = Array.from(allOptions).find(div => div.innerText.includes(option));
+        if(selectedDiv) {
+            selectedDiv.classList.add('selected');
+            const circle = selectedDiv.querySelector('div');
+            circle.className = 'w-8 h-8 rounded-full border-2 flex items-center justify-center text-sm font-bold border-brand-600 bg-brand-600 text-white';
+        }
+
+        // Logic
+        userAnswers[currentQuestionIndex] = userAnswers[currentQuestionIndex] || {};
+        userAnswers[currentQuestionIndex].selectedOption = option;
+    }
+    
+    function recordAnswer(optionOverride) {
+        clearInterval(timerInterval);
+        userAnswers[currentQuestionIndex] = userAnswers[currentQuestionIndex] || {};
+        userAnswers[currentQuestionIndex].endTime = performance.now();
+        
+        // Calculate time (max 30s)
+        let spent = (userAnswers[currentQuestionIndex].endTime - userAnswers[currentQuestionIndex].startTime) / 1000;
+        if(spent > TIME_LIMIT) spent = TIME_LIMIT;
+        userAnswers[currentQuestionIndex].timeSpent = spent;
+        
+        if (optionOverride === null) {
+            userAnswers[currentQuestionIndex].selectedOption = 'UNANSWERED';
+        } else if (!userAnswers[currentQuestionIndex].selectedOption) {
+            userAnswers[currentQuestionIndex].selectedOption = 'UNANSWERED';
+        }
+    }
+
+    function nextQuestion() {
+        recordAnswer();
+        if (currentQuestionIndex < quiz.length - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+        }
+    }
+
+    function prevQuestion() {
+        recordAnswer(); // Save state of current before going back
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+        }
+    }
+
+    function updateNavigationButtons() {
+        prevBtn.disabled = currentQuestionIndex === 0;
+        
+        if (currentQuestionIndex === quiz.length - 1) {
+            nextBtn.classList.add('hidden');
+            submitQuizBtn.classList.remove('hidden');
+            progressBar.style.width = '95%';
+        } else {
+            nextBtn.classList.remove('hidden');
+            submitQuizBtn.classList.add('hidden');
+        }
+    }
+
+    function submitQuiz() {
+        recordAnswer();
+        progressBar.style.width = '100%';
+        
+        let correct = 0;
+        let totalTime = 0;
+        
+        quiz.forEach((q, index) => {
+            const u = userAnswers[index] || {};
+            if (u.selectedOption === q.answer) correct++;
+            totalTime += (u.timeSpent || TIME_LIMIT);
+        });
+
+        // Update Results UI
+        document.getElementById('total-score-display').textContent = `${correct} / ${quiz.length}`;
+        document.getElementById('accuracy-display').textContent = `${Math.round((correct/quiz.length)*100)}%`;
+        document.getElementById('avg-time-display').textContent = `${(totalTime/quiz.length).toFixed(1)}s`;
+        
+        renderCharts(correct, quiz.length - correct);
+
+        quizScreen.classList.add('hidden');
+        headerTimer.classList.add('hidden');
+        resultScreen.classList.remove('hidden');
+    }
+    
+    function renderCharts(correct, incorrect) {
+        // 1. Pie Chart
+        new Chart(document.getElementById('scoreChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Correct', 'Incorrect'],
+                datasets: [{
+                    data: [correct, incorrect],
+                    backgroundColor: ['#10b981', '#f3f4f6'],
+                    borderWidth: 0,
+                    hoverOffset: 4
+                }]
+            },
+            options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+        });
+
+        // 2. Bar Chart
+        const timeData = quiz.map((_, i) => {
+            const t = userAnswers[i]?.timeSpent || 0;
+            return t.toFixed(1);
+        });
+        
+        new Chart(document.getElementById('timeChart'), {
+            type: 'bar',
+            data: {
+                labels: quiz.map((_, i) => `Q${i+1}`),
+                datasets: [{
+                    label: 'Seconds',
+                    data: timeData,
+                    backgroundColor: '#6366f1',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                scales: { y: { beginAtZero: true, max: 30 } },
+                plugins: { legend: { display: false } }
+            }
+        });
+    }
+
+    // --- Event Listeners ---
+    document.getElementById('start-quiz-btn').addEventListener('click', () => {
+        filterQuiz();
+        configScreen.classList.add('hidden');
+        quizScreen.classList.remove('hidden');
+        headerTimer.classList.remove('hidden');
+        renderQuestion();
+    });
+
+    nextBtn.addEventListener('click', nextQuestion);
+    prevBtn.addEventListener('click', prevQuestion);
+    submitQuizBtn.addEventListener('click', submitQuiz);
+</script>
+
+</body>
+</html>
